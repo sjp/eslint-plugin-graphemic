@@ -8,7 +8,15 @@ replacement.
 
 <!-- begin rules list -->
 
-No rules yet.
+✅ Enabled in the `recommended` config; `all` enables every rule.
+
+💡 Offers [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+No rule fixes code automatically: each replacement changes behaviour for some input,
+so a person chooses it.
+
+| Name                                                         | Description                                                    | ✅  | 💡  |
+| ------------------------------------------------------------ | -------------------------------------------------------------- | --- | --- |
+| [graphemic/no-unsafe-length](docs/rules/no-unsafe-length.md) | Disallow `.length` on strings, which counts UTF-16 code units. | ✅  | 💡  |
 
 <!-- end rules list -->
 
