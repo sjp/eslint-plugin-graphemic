@@ -42,3 +42,65 @@ Nothing else counts, so none of these is reported:
 
 `String`, `Array` and their static methods count only while they are the
 globals, not when the file declares its own.
+
+## Rule pages
+
+Every rule has a page at `docs/rules/<name>.md`; `createRule` links each rule to
+it. The part of the page above `<!-- end auto-generated rule header -->` is
+generated from the rule's `meta` — the title, description, whether the
+`recommended` config enables it, whether it offers suggestions, and its options
+from `meta.schema` — and so is the rules table in the README. After adding a
+rule or changing its `meta`, run:
+
+```sh
+npm run docs
+```
+
+`npm run check` runs `npm run docs:check`, which fails when the generated text is
+out of date, when a rule has no page, or when a page has no rule.
+
+Start a new page from this template. Write only the header's two lines; the
+generator fills in the rest:
+
+````md
+# graphemic/<name>
+
+<!-- end auto-generated rule header -->
+
+One paragraph: what the native operation counts and the input it breaks on,
+with a concrete example (`'👋🏽'.length === 4`).
+
+## Rule details
+
+### Incorrect
+
+```js
+…
+```
+
+### Correct
+
+```js
+…
+```
+
+## Suggestions
+
+| Unit | Replacement | When to choose it |
+| ---- | ----------- | ----------------- |
+| …    | …           | …                 |
+
+## What counts as a string
+
+Which receivers the rule recognises, linking
+[What counts as a string](../../CONTRIBUTING.md#what-counts-as-a-string), with
+a JavaScript and a TypeScript example.
+
+## Options
+
+The options and what each changes, or "This rule has no options."
+
+## When not to use it
+
+…
+````

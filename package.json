@@ -49,10 +49,12 @@
     "lint:package": "publint && attw --pack --profile esm-only",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "docs": "npm run build && node scripts/generate-docs.mjs",
+    "docs:check": "npm run build && node scripts/generate-docs.mjs --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run docs:check",
     "prepublishOnly": "npm run clean && npm run check && npm run build"
   },
   "devDependencies": {

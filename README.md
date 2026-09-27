@@ -4,6 +4,14 @@ Oxlint rules that flag string operations which can cut through a user-visible
 character, and suggest the [`@sjpnz/graphemic`](https://github.com/sjp/graphemic)
 replacement.
 
+## Rules
+
+<!-- begin rules list -->
+
+No rules yet.
+
+<!-- end rules list -->
+
 ## Settings
 
 Settings shared by every rule go under `settings.graphemic` in `.oxlintrc.json`.
