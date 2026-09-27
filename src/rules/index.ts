@@ -1,5 +1,6 @@
 import type { GraphemicRule } from '../utils/createRule.js';
 import noUnsafeLength from './no-unsafe-length.js';
+import noUnsafeSlice from './no-unsafe-slice.js';
 
 /**
  * Every rule the plugin ships, keyed by the name users write after
@@ -8,4 +9,5 @@ import noUnsafeLength from './no-unsafe-length.js';
  */
 export const rules: Record<string, GraphemicRule> = {
   'no-unsafe-length': noUnsafeLength,
+  'no-unsafe-slice': noUnsafeSlice,
 };

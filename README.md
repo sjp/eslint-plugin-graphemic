@@ -14,9 +14,10 @@ replacement.
 No rule fixes code automatically: each replacement changes behaviour for some input,
 so a person chooses it.
 
-| Name                                                         | Description                                                    | ✅  | 💡  |
-| ------------------------------------------------------------ | -------------------------------------------------------------- | --- | --- |
-| [graphemic/no-unsafe-length](docs/rules/no-unsafe-length.md) | Disallow `.length` on strings, which counts UTF-16 code units. | ✅  | 💡  |
+| Name                                                         | Description                                                                                   | ✅  | 💡  |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | --- | --- |
+| [graphemic/no-unsafe-length](docs/rules/no-unsafe-length.md) | Disallow `.length` on strings, which counts UTF-16 code units.                                | ✅  | 💡  |
+| [graphemic/no-unsafe-slice](docs/rules/no-unsafe-slice.md)   | Disallow `slice`, `substring` and `substr` on strings, which cut at UTF-16 code-unit offsets. | ✅  | 💡  |
 
 <!-- end rules list -->
 
