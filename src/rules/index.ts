@@ -3,6 +3,7 @@ import noUnsafeIndex from './no-unsafe-index.js';
 import noUnsafeIteration from './no-unsafe-iteration.js';
 import noUnsafeLength from './no-unsafe-length.js';
 import noUnsafePad from './no-unsafe-pad.js';
+import noUnsafeReverse from './no-unsafe-reverse.js';
 import noUnsafeSlice from './no-unsafe-slice.js';
 import noUnsafeSplit from './no-unsafe-split.js';
 
@@ -16,6 +17,7 @@ export const rules: Record<string, GraphemicRule> = {
   'no-unsafe-iteration': noUnsafeIteration,
   'no-unsafe-length': noUnsafeLength,
   'no-unsafe-pad': noUnsafePad,
+  'no-unsafe-reverse': noUnsafeReverse,
   'no-unsafe-slice': noUnsafeSlice,
   'no-unsafe-split': noUnsafeSplit,
 };
