@@ -24,6 +24,7 @@ so a person chooses it.
 | [graphemic/no-unsafe-search](docs/rules/no-unsafe-search.md)       | Disallow `indexOf` and `lastIndexOf` on strings where the code-unit position they return is used, and optionally `includes`. |     | 💡  |
 | [graphemic/no-unsafe-slice](docs/rules/no-unsafe-slice.md)         | Disallow `slice`, `substring` and `substr` on strings, which cut at UTF-16 code-unit offsets.                                | ✅  | 💡  |
 | [graphemic/no-unsafe-split](docs/rules/no-unsafe-split.md)         | Disallow `split` into UTF-16 code units, and optionally on any separator, which can cut characters apart.                    | ✅  | 💡  |
+| [graphemic/prefer-truncate](docs/rules/prefer-truncate.md)         | Prefer `truncate` to shortening a string by hand with `length` and `slice`, which can cut a character in half.               | ✅  | 💡  |
 
 <!-- end rules list -->
 

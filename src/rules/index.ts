@@ -7,6 +7,7 @@ import noUnsafeReverse from './no-unsafe-reverse.js';
 import noUnsafeSearch from './no-unsafe-search.js';
 import noUnsafeSlice from './no-unsafe-slice.js';
 import noUnsafeSplit from './no-unsafe-split.js';
+import preferTruncate from './prefer-truncate.js';
 
 /**
  * Every rule the plugin ships, keyed by the name users write after
@@ -22,4 +23,5 @@ export const rules: Record<string, GraphemicRule> = {
   'no-unsafe-search': noUnsafeSearch,
   'no-unsafe-slice': noUnsafeSlice,
   'no-unsafe-split': noUnsafeSplit,
+  'prefer-truncate': preferTruncate,
 };
