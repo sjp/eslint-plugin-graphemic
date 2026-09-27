@@ -15,6 +15,7 @@ export type CallOption = {
   extra?: string[];
   suffix?: string;
   chained?: boolean;
+  negated?: boolean;
 };
 
 /**
@@ -43,6 +44,7 @@ export const callRule = createRule('call', {
           extra: { type: 'array', items: { type: 'string' } },
           suffix: { type: 'string' },
           chained: { type: 'boolean' },
+          negated: { type: 'boolean' },
         },
         required: ['unit', 'fn'],
         additionalProperties: false,
@@ -67,7 +69,7 @@ export const callRule = createRule('call', {
           suggest: callSuggestions(
             context,
             node,
-            options.map(({ unit, fn, extra = [], suffix, chained }) => {
+            options.map(({ unit, fn, extra = [], suffix, chained, negated }) => {
               const suggestion: CallSuggestion = {
                 messageId: 'suggest',
                 data: { unit },
@@ -77,6 +79,7 @@ export const callRule = createRule('call', {
               };
               if (suffix !== undefined) suggestion.suffix = suffix;
               if (chained !== undefined) suggestion.chained = chained;
+              if (negated !== undefined) suggestion.negated = negated;
               return suggestion;
             }),
           ),

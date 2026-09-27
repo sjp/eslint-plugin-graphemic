@@ -22,6 +22,12 @@ export interface CallSuggestion {
    * e.g. `.map(fn)`, and so binds as tightly as the call itself.
    */
   chained?: boolean;
+  /**
+   * Whether to negate the call with `!`, as in `!graphemes.includes(s, x)`.
+   * The replacement is then a unary expression, parenthesised where that
+   * binds too loosely. Not combined with `suffix`.
+   */
+  negated?: boolean;
 }
 
 /**
@@ -59,9 +65,10 @@ export function callSuggestion(
   const args = suggestion.args.map((arg) =>
     typeof arg === 'string' ? arg : argumentText(sourceCode, arg),
   );
-  const call = `${callee.text}(${args.join(', ')})${suggestion.suffix ?? ''}`;
+  const negated = suggestion.negated === true;
+  const call = `${negated ? '!' : ''}${callee.text}(${args.join(', ')})${suggestion.suffix ?? ''}`;
   const loose = suggestion.suffix !== undefined && suggestion.chained !== true;
-  const text = needsParentheses(sourceCode, node, loose)
+  const text = needsParentheses(sourceCode, node, loose, negated)
     ? `${asiGuard(sourceCode, node)}(${call})`
     : call;
   return {
@@ -142,19 +149,38 @@ function losesComments(
 /**
  * Whether the replacement has to be parenthesised to parse as one operand in
  * `node`'s place. A bare call binds as tightly as anything except as the
- * callee of `new`, where `new f.x()` and `new (f.x())` differ. A loose suffix
- * binds more loosely, so a call with one is parenthesised unless `node`
- * already is, or sits where any expression is allowed.
+ * callee of `new`, where `new f.x()` and `new (f.x())` differ. A negated call
+ * binds as a unary expression, too loosely to be accessed, called or raised
+ * to a power. A loose suffix binds more loosely still, so a call with one is
+ * parenthesised unless `node` already is, or sits where any expression is
+ * allowed.
  */
 function needsParentheses(
   sourceCode: SourceCode,
   node: ESTree.Expression,
   looseSuffix: boolean,
+  unary: boolean,
 ): boolean {
   const { parent } = node;
   if (parent.type === 'NewExpression' && parent.callee === node) return true;
-  if (!looseSuffix || isParenthesized(sourceCode, node)) return false;
-  return !acceptsAnyExpression(parent, node);
+  if ((!looseSuffix && !unary) || isParenthesized(sourceCode, node)) return false;
+  return looseSuffix ? !acceptsAnyExpression(parent, node) : bindsTighterThanUnary(parent, node);
+}
+
+/** Whether `node`'s position in `parent` takes only something tighter than a unary expression. */
+function bindsTighterThanUnary(parent: ESTree.Node, node: ESTree.Node): boolean {
+  switch (parent.type) {
+    case 'MemberExpression':
+      return parent.object === node;
+    case 'CallExpression':
+      return parent.callee === node;
+    case 'TaggedTemplateExpression':
+      return parent.tag === node;
+    case 'BinaryExpression':
+      return parent.operator === '**' && parent.left === node;
+    default:
+      return false;
+  }
 }
 
 /**

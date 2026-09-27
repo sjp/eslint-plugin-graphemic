@@ -11,6 +11,8 @@ const FIRST: CallOption[] = [{ unit: 'graphemes', fn: 'at', extra: ['0'], suffix
 const MAPPED: CallOption[] = [
   { unit: 'graphemes', fn: 'toArray', suffix: '.map(f)', chained: true },
 ];
+/** `!graphemes.includes(s)`: a negated call, which binds as a unary expression. */
+const EXCLUDES: CallOption[] = [{ unit: 'graphemes', fn: 'includes', negated: true }];
 
 /**
  * An invalid case whose one report suggests `IMPORT` followed by `output`, or
@@ -109,6 +111,18 @@ ruleTester.run('callSuggestion', callRule, {
     suggests("x + 'ab'.$;", "x + graphemes.toArray('ab').map(f);", MAPPED),
     suggests("y = 'ab'.$.x;", "y = graphemes.toArray('ab').map(f).x;", MAPPED),
     suggests("new 'ab'.$();", "new (graphemes.toArray('ab').map(f))();", MAPPED),
+
+    // A negated call is parenthesised only where a unary expression binds too loosely.
+    suggests('x && s.$;', 'x && !graphemes.includes(s);', EXCLUDES),
+    suggests('y = s.$ ** 2;', 'y = (!graphemes.includes(s)) ** 2;', EXCLUDES),
+    suggests('y = 2 ** s.$;', 'y = 2 ** !graphemes.includes(s);', EXCLUDES),
+    suggests('y = s.$.x;', 'y = (!graphemes.includes(s)).x;', EXCLUDES),
+    suggests('y = x[s.$];', 'y = x[!graphemes.includes(s)];', EXCLUDES),
+    suggests('s.$(1)(2);', '(!graphemes.includes(s, 1))(2);', EXCLUDES),
+    suggests('f(s.$);', 'f(!graphemes.includes(s));', EXCLUDES),
+    suggests('s.$`t`;', '(!graphemes.includes(s))`t`;', EXCLUDES),
+    suggests('y = (s.$).x;', 'y = (!graphemes.includes(s)).x;', EXCLUDES),
+    suggests('new s.$();', 'new (!graphemes.includes(s))();', EXCLUDES),
 
     // A parenthesised replacement starting a statement is guarded against
     // joining the one before, when that has no semicolon.
