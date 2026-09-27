@@ -182,6 +182,42 @@ ruleTester.run(
   ]),
 );
 
+ruleTester.run(
+  'hasIndexDerivedBounds (early exits)',
+  rule,
+  cases([
+    ["function f() { if (!s.startsWith('#')) return; s.slice(1); }", true],
+    ["function f() { if (!s.startsWith('#')) throw new Error(); s.slice(1); }", true],
+    ["for (;;) { if (!s.startsWith('#')) continue; s.slice(1); }", true],
+    ["for (;;) { if (!s.startsWith('#')) break; s.slice(1); }", true],
+    ["function f() { if (!s.startsWith('#')) { x = 1; return; } s.slice(1); }", true],
+    ["function f() { if (!s.startsWith('#')) { { return; } } s.slice(1); }", true],
+    ["function f() { if (!s.startsWith('#')) return; else x = 1; s.slice(1); }", true],
+    ["function f() { if (!s.endsWith('.js')) return; s.slice(0, -3); }", true],
+    ["function f() { if (!(ok && s.startsWith('#'))) return; s.slice(1); }", true],
+    ["function f() { if (!ok || !s.startsWith('#')) return; s.slice(1); }", true],
+    ["function f() { if (!s.startsWith('#') || !ok) return; s.slice(1); }", true],
+    ["function f() { if (!s.startsWith('#')) return; x = 1; if (ok) { s.slice(1); } }", true],
+    ["function f() { if (!s.startsWith('#')) return; const g = () => { s.slice(1); }; }", true],
+    ["switch (x) { case 1: if (!s.startsWith('#')) break; s.slice(1); }", true],
+    ["class A { static { if (!s.startsWith('#')) throw 0; s.slice(1); } }", true],
+    // The check does not hold after the `if`, or the `if` does not always leave.
+    ["function f() { s.slice(1); if (!s.startsWith('#')) return; }", false],
+    ["function f() { if (s.startsWith('#')) return; s.slice(1); }", false],
+    ["function f() { if (!s.startsWith('#')) x = 1; s.slice(1); }", false],
+    ["function f() { if (!s.startsWith('#')) {} s.slice(1); }", false],
+    ["function f() { if (!s.startsWith('#')) { return; x = 1; } s.slice(1); }", false],
+    ["function f() { if (!s.startsWith('#')) { if (ok) return; } s.slice(1); }", false],
+    ["function f() { if (!ok && !s.startsWith('#')) return; s.slice(1); }", false],
+    ["function f() { if (!(ok || s.startsWith('#'))) return; s.slice(1); }", false],
+    ["function f() { if (!s.startsWith('ab')) return; s.slice(1); }", false],
+    ["function f() { if (!t.startsWith('#')) return; s.slice(1); }", false],
+    ["function f() { if (!s.startsWith('#')) return; } s.slice(1);", false],
+    ["function f() { { if (!s.startsWith('#')) return; } s.slice(1); }", false],
+    ["switch (x) { case 1: if (!s.startsWith('#')) break; case 2: s.slice(1); }", false],
+  ]),
+);
+
 tsRuleTester.run(
   'hasIndexDerivedBounds (TypeScript)',
   rule,
@@ -193,5 +229,6 @@ tsRuleTester.run(
     ["s!.slice(0, s.indexOf(','));", true],
     ['s.slice(0, s.indexOf(sep!) + sep.length);', true],
     ["if ((s as string).startsWith('#')) s.slice(1 as number);", true],
+    ["for (;;) { if (!(s as string).startsWith('#') as boolean) continue; s.slice(1); }", true],
   ]),
 );

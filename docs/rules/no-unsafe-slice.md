@@ -37,7 +37,10 @@ boundary in the same string, because every bound is:
 - a number `k`, `-k` or `s.length - k` inside a check that `s` starts (for
   `k`) or ends (for the others) with a string literal `k` code units long, as
   in `if (s.startsWith('#')) s.slice(1)`. The check can be the test of an `if`
-  or `?:`, the left of `&&`, or part of a longer `&&` chain.
+  or `?:`, the left of `&&`, or part of a longer `&&` chain. It can also be an
+  earlier `if` that leaves unless the check holds, as in
+  `if (!s.startsWith('#')) return;`, which may `return`, `throw`, `break` or
+  `continue`.
 
 For these, the string being sliced and any `x` must be a variable, `this`, or
 a chain of `.name` properties on those, written the same way both times, so

@@ -51,6 +51,7 @@ ruleTester.run('no-unsafe-slice', rule, {
     // A prefix or suffix of known length, checked first.
     "const s = 'a'; if (s.startsWith('#')) s.slice(1);",
     "const s = 'a'; const t = s.endsWith('.js') ? s.slice(0, -3) : s;",
+    "function f() { const s = 'a'; if (!s.startsWith('#')) return; return s.slice(1); }",
     // Nothing is cut.
     "const s = 'a'; s.slice();",
     's.substring();',
@@ -96,6 +97,7 @@ ruleTester.run('no-unsafe-slice', rule, {
     // A guard on the wrong string, or of the wrong length.
     reported("const s = 'a'; if (t.startsWith('#')) s.slice(1);", 'slice', 's.slice(1)', 's, 1'),
     reported("const s = 'a'; if (s.startsWith('##')) s.slice(1);", 'slice', 's.slice(1)', 's, 1'),
+    reported("const s = 'a'; switch (x) { case s.slice(1): }", 'slice', 's.slice(1)', 's, 1'),
     // `substring` on any receiver; ordered bounds cut exactly where `slice` would.
     reported('s.substring(1);', 'substring', 's.substring(1)', 's, 1'),
     reported('s.substring(1, 3);', 'substring', 's.substring(1, 3)', 's, 1, 3'),

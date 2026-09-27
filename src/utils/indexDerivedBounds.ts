@@ -42,9 +42,10 @@ export function hasIndexDerivedBounds(context: Context, call: ESTree.CallExpress
  *   a string literal `x`, as in `s.indexOf(', ') + 2`;
  * - `R.length`, or `R.length - x.length` or `-x.length`, which strip `x` from
  *   the end;
- * - a number `k`, `-k` or `R.length - k`, where an enclosing condition has
- *   checked that `R` starts (for `k`) or ends (for the others) with a string
- *   literal `k` code units long, as in `if (s.startsWith('#')) s.slice(1)`.
+ * - a number `k`, `-k` or `R.length - k`, where an enclosing condition or an
+ *   earlier early exit has checked that `R` starts (for `k`) or ends (for the
+ *   others) with a string literal `k` code units long, as in
+ *   `if (s.startsWith('#')) s.slice(1)` or `if (!s.startsWith('#')) return;`.
  *
  * `R` and `x` must be the same text at both places and free of side effects:
  * an identifier, `this`, or a chain of `.name` members of those. `x` may also
@@ -141,7 +142,8 @@ function isLengthOf(match: Matcher, node: ESTree.Expression): boolean {
  * Whether `literal`, a number, is the length of a string literal that an
  * enclosing condition checks `R` starts or ends with. The call it guards must
  * be in the consequent of an `if` or `?:`, or on the right of `&&`, whose test
- * is the check or includes it through `&&`.
+ * is the check or includes it through `&&`; or come after an `if` that leaves
+ * the block unless the check holds, as in `if (!s.startsWith('#')) return;`.
  */
 function isGuarded(
   match: Matcher,
@@ -160,8 +162,89 @@ function isGuarded(
       if (parent.right === child) test = parent.left;
     }
     if (test !== undefined && checks(match, test, method, k)) return true;
+    if (exitedUnless(match, statementsBefore(parent, child), method, k)) return true;
   }
   return false;
+}
+
+/** The statements that run before `child` in the statement list `parent` holds it in. */
+function statementsBefore(parent: ESTree.Node, child: ESTree.Node): readonly ESTree.Node[] {
+  let list: readonly ESTree.Node[];
+  switch (parent.type) {
+    case 'Program':
+    case 'BlockStatement':
+    case 'StaticBlock':
+      list = parent.body;
+      break;
+    case 'SwitchCase':
+      list = parent.consequent;
+      break;
+    default:
+      return [];
+  }
+  const index = list.indexOf(child);
+  return index === -1 ? [] : list.slice(0, index);
+}
+
+/**
+ * Whether one of `statements` is an `if` that returns, throws, breaks or
+ * continues unless the check holds, so that the code after it only runs when
+ * it does: `if (!R.startsWith(lit)) return;`.
+ */
+function exitedUnless(
+  match: Matcher,
+  statements: readonly ESTree.Node[],
+  method: 'startsWith' | 'endsWith',
+  k: number,
+): boolean {
+  return statements.some(
+    (statement) =>
+      statement.type === 'IfStatement' &&
+      exits(statement.consequent) &&
+      checksNegated(match, statement.test, method, k),
+  );
+}
+
+/** Whether `statement` always leaves the block: a `return`, `throw`, `break` or `continue` last. */
+function exits(statement: ESTree.Statement): boolean {
+  switch (statement.type) {
+    case 'ReturnStatement':
+    case 'ThrowStatement':
+    case 'BreakStatement':
+    case 'ContinueStatement':
+      return true;
+    case 'BlockStatement': {
+      const last = statement.body.at(-1);
+      return last !== undefined && exits(last);
+    }
+    default:
+      return false;
+  }
+}
+
+/**
+ * Whether `test` is false only when the check holds: `!check`, where `check`
+ * may be an `&&` chain that includes it, or an `||` with such a disjunct, as in
+ * `!a || !R.startsWith(lit)`.
+ */
+function checksNegated(
+  match: Matcher,
+  test: ESTree.Expression,
+  method: 'startsWith' | 'endsWith',
+  k: number,
+): boolean {
+  const node = unwrap(test);
+  if (node.type === 'LogicalExpression') {
+    return (
+      node.operator === '||' &&
+      (checksNegated(match, node.left, method, k) || checksNegated(match, node.right, method, k))
+    );
+  }
+  return (
+    node.type === 'UnaryExpression' &&
+    node.operator === '!' &&
+    checks(match, node.argument, method, k)
+  );
 }
 
 /** Whether `test`, or a conjunct of it, is `R.startsWith(lit)`/`R.endsWith(lit)` with `lit` `k` long. */
