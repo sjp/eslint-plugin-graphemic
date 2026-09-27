@@ -1,0 +1,76 @@
+{
+  "name": "eslint-plugin-graphemic",
+  "version": "0.0.0",
+  "description": "Oxlint rules that flag string operations which can cut through a user-visible character, and suggest the @sjpnz/graphemic replacement.",
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "eslintplugin",
+    "grapheme",
+    "graphemes",
+    "graphemic",
+    "oxlint",
+    "oxlint-plugin",
+    "string",
+    "unicode"
+  ],
+  "homepage": "https://github.com/sjp/eslint-plugin-graphemic#readme",
+  "bugs": {
+    "url": "https://github.com/sjp/eslint-plugin-graphemic/issues"
+  },
+  "license": "MIT",
+  "author": "Simon Potter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sjp/eslint-plugin-graphemic.git"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:package": "publint && attw --pack --profile esm-only",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "prepublishOnly": "npm run clean && npm run check && npm run build"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@oxlint/plugins": "^1.85.0",
+    "@types/node": "^26.6.2",
+    "@vitest/coverage-v8": "^5.0.2",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "publint": "^0.3.24",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "oxlint": ">=1.85.0"
+  },
+  "engines": {
+    "node": "^22.13.0 || >=24"
+  }
+}

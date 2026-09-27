@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  // Tests, their fixtures and the rule tester harness never ship.
+  "exclude": ["src/**/*.test.ts", "src/test"]
+}
