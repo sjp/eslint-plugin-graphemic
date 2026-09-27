@@ -30,6 +30,11 @@ function reported(code: string, messageId: string, replaced: string, args: strin
   };
 }
 
+/** The one report on `code`, with `messageId`, whatever its suggestions. */
+function reportedAs(code: string, messageId: string) {
+  return { code, errors: [{ messageId }] };
+}
+
 /** The one report on `code`, with `messageId`, which has no suggestions. */
 function unsuggested(code: string, messageId: string) {
   return { code, errors: [{ messageId, suggestions: [] }] };
@@ -61,6 +66,13 @@ ruleTester.run('no-unsafe-pad', rule, {
     "s.trimStart('0');",
     "s['padStart'](2);",
     'class A extends B { f() { return super.padStart(2); } }',
+    // graphemic's own functions, which are what this rule suggests.
+    "import { graphemes } from '@sjpnz/graphemic'; graphemes.padStart(s, 8);",
+    "import { utf8, graphemes as g } from '@sjpnz/graphemic'; g.padEnd(s, 8, '.');",
+    "import * as columns from '@sjpnz/graphemic/columns'; columns.padStart(s, 8);",
+    "import * as graphemes from '@sjpnz/graphemic/graphemes'; graphemes.padEnd(s, 8);",
+    "import * as graphemic from '@sjpnz/graphemic'; graphemic.graphemes.padEnd(s, 8);",
+    "import { graphemes } from '@sjpnz/graphemic'; graphemes?.padStart(s, 8);",
   ],
   invalid: [
     // Any receiver: only strings have these methods.
@@ -206,6 +218,33 @@ ruleTester.run('no-unsafe-pad', rule, {
     // An optional chain needs a conditional to rewrite.
     unsuggested('s?.padStart(2);', 'padStart'),
     unsuggested("s?.trim().padEnd(2, '-');", 'padEnd'),
+    // Names that are not one of graphemic's unit namespaces here.
+    reportedAs(
+      "import { graphemes } from '@sjpnz/graphemic'; function f(graphemes) { return graphemes.padStart(8); }",
+      'padStart',
+    ),
+    reportedAs("import { VERSION } from '@sjpnz/graphemic'; VERSION.padStart(8);", 'padStart'),
+    reportedAs("import * as graphemic from '@sjpnz/graphemic'; graphemic.padStart(8);", 'padStart'),
+    reportedAs("import graphemic from '@sjpnz/graphemic'; graphemic.padStart(8);", 'padStart'),
+    reportedAs("import { graphemes } from 'graphemes'; graphemes.padStart(s, 8);", 'padStart'),
+    reportedAs(
+      "import * as graphemic from '@sjpnz/graphemic'; graphemic.columns.padStart(s, 8);",
+      'padStart',
+    ),
+    reportedAs(
+      "import * as graphemic from '@sjpnz/graphemic'; graphemic['graphemes'].padStart(s, 8);",
+      'padStart',
+    ),
+    reportedAs(
+      "import * as g from '@sjpnz/graphemic/graphemes'; g.graphemes.padStart(s, 8);",
+      'padStart',
+    ),
+    reportedAs(
+      "import { graphemes } from '@sjpnz/graphemic'; x.graphemes.padStart(8);",
+      'padStart',
+    ),
+    reportedAs('a.b.graphemes.padStart(8);', 'padStart'),
+    reportedAs('class A { #g; f(x) { return x.#g.padStart(8); } }', 'padStart'),
   ],
 });
 
@@ -213,6 +252,7 @@ tsRuleTester.run('no-unsafe-pad (TypeScript)', rule, {
   valid: [
     "function f(n: number) { return String(n).padStart(2, '0'); }",
     "function f(n: number) { return (n as number).toString().padStart(2, '0'); }",
+    "import { graphemes } from '@sjpnz/graphemic'; function f(s: string) { return graphemes.padStart(s, 8); }",
   ],
   invalid: [
     reported(
@@ -238,6 +278,15 @@ tsRuleTester.run('no-unsafe-pad (TypeScript)', rule, {
       'padStart',
       "d.padStart(2, '0')",
       "d, 2, '0'",
+    ),
+    // A type-only import is not the namespace at run time.
+    reportedAs(
+      "import type { graphemes } from '@sjpnz/graphemic'; graphemes.padStart(s, 8);",
+      'padStart',
+    ),
+    reportedAs(
+      "import { type graphemes } from '@sjpnz/graphemic'; graphemes.padStart(s, 8);",
+      'padStart',
     ),
   ],
 });

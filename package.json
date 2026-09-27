@@ -54,7 +54,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run docs:check",
+    "test:integration": "npm run build && vitest run --config vitest.integration.config.ts",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run docs:check && npm run test:integration",
     "version": "node .github/scripts/sync-version.mjs && git add src/index.ts",
     "prepublishOnly": "npm run clean && npm run check && npm run build"
   },

@@ -1,6 +1,7 @@
 import type { Context, ESTree, Variable } from '@oxlint/plugins';
 
 import { createRule } from '../utils/createRule.js';
+import { isGraphemicNamespace } from '../utils/imports.js';
 import { callSuggestions } from '../utils/replace.js';
 import { resolve } from '../utils/scope.js';
 import { isStringLike } from '../utils/strings.js';
@@ -40,8 +41,10 @@ export default createRule('no-unsafe-pad', {
         const { callee } = call;
         if (callee.type !== 'MemberExpression' || callee.computed) return;
         if (callee.property.type !== 'Identifier' || callee.object.type === 'Super') return;
-        // Only strings have these methods, so the receiver is not checked.
+        // Only strings have these methods, so the receiver is not checked,
+        // except for graphemic's own functions of the same names.
         if (!METHODS.has(callee.property.name)) return;
+        if (isGraphemicNamespace(context, callee.object)) return;
         // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- checked just above
         const method = callee.property.name as Method;
         const args = call.arguments;

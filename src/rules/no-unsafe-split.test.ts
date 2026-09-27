@@ -94,6 +94,12 @@ ruleTester.run('no-unsafe-split', rule, {
       code: 's.split();',
       options: ALL,
     },
+    // graphemic's own `split`, which this rule suggests.
+    "import { graphemes } from '@sjpnz/graphemic'; graphemes.split(s, '');",
+    {
+      code: "import { graphemes } from '@sjpnz/graphemic'; graphemes.split(s, ',');",
+      options: ALL,
+    },
   ],
   invalid: [
     // Every spelling of the empty separator, on any receiver.

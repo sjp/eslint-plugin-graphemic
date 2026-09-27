@@ -41,6 +41,7 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run test:coverage
+      - run: npm run test:integration
       - run: npm run docs:check
       - run: npm run lint:package
 
@@ -70,6 +71,7 @@ jobs:
           npm i -D "oxlint@$floor" "@oxlint/plugins@$floor" --no-save
       - run: npx oxlint --version
       - run: npm test
+      - run: npm run test:integration
 
   # The early warning that the next oxlint release breaks this plugin for its
   # users. It does not block a merge — nothing in a pull request can fix an
@@ -90,6 +92,7 @@ jobs:
       - run: npm i -D oxlint@latest @oxlint/plugins@latest --no-save
       - run: npx oxlint --version
       - run: npm test
+      - run: npm run test:integration
       # Pull requests are left out: a fork's token cannot write issues, and the
       # same failure will be seen on main or on the next scheduled run anyway.
       # One open issue collects every failure until someone closes it.

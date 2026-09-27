@@ -16,9 +16,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "rootDir": "src",
-    "outDir": "dist",
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src", "test"],
+  // Third-party code, vendored as lint input for the integration tests.
+  "exclude": ["test/integration/corpus"]
 }

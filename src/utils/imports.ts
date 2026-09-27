@@ -140,6 +140,69 @@ export function graphemicCallee(
 }
 
 /**
+ * Whether `node` is one of graphemic's unit namespaces, reached through an
+ * import this file has: `graphemes` after `import { graphemes } from
+ * '@sjpnz/graphemic'`, `columns` after `import * as columns from
+ * '@sjpnz/graphemic/columns'`, or `g.utf8` after `import * as g from
+ * '@sjpnz/graphemic'`. Some graphemic functions share a name with a string
+ * method, and they are what the rules suggest: a rule that reports
+ * `s.padStart(8)` on any receiver must not report `graphemes.padStart(s, 8)`.
+ *
+ * @example
+ * // import { graphemes } from '@sjpnz/graphemic';
+ * isGraphemicNamespace(context, receiver); // true for `graphemes`, false for `s`
+ */
+export function isGraphemicNamespace(context: Context, node: ESTree.Node): boolean {
+  if (node.type === 'Identifier') {
+    const found = importOf(context, node, node.name);
+    if (found === undefined) return false;
+    const { specifier, source } = found;
+    if (specifier.type === 'ImportNamespaceSpecifier') return UNIT_SUBPATHS.has(source);
+    // graphemic has no default export, so only a named import can be of it.
+    return (
+      specifier.type === 'ImportSpecifier' &&
+      source === ROOT &&
+      ROOT_UNITS.has(exportName(specifier.imported))
+    );
+  }
+  if (node.type !== 'MemberExpression' || node.computed) return false;
+  if (node.object.type !== 'Identifier' || node.property.type !== 'Identifier') return false;
+  const found = importOf(context, node.object, node.object.name);
+  return (
+    found?.specifier.type === 'ImportNamespaceSpecifier' &&
+    found.source === ROOT &&
+    ROOT_UNITS.has(node.property.name)
+  );
+}
+
+const UNIT_SUBPATHS: ReadonlySet<string> = new Set(Object.values(SUBPATHS));
+
+/** The units the root entry point re-exports as namespaces, by name. */
+const ROOT_UNITS: ReadonlySet<string> = new Set(
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- SUBPATHS is keyed by Unit
+  (Object.keys(SUBPATHS) as Unit[]).filter(inRoot),
+);
+
+/** The value import `name` refers to at `node`, and the module it is from. */
+function importOf(
+  context: Context,
+  node: ESTree.Node,
+  name: string,
+): { specifier: ESTree.ImportDeclarationSpecifier; source: string } | undefined {
+  for (const statement of context.sourceCode.ast.body) {
+    if (statement.type !== 'ImportDeclaration' || statement.importKind === 'type') continue;
+    for (const specifier of statement.specifiers) {
+      if (specifier.local.name !== name) continue;
+      if (specifier.type === 'ImportSpecifier' && specifier.importKind === 'type') continue;
+      if (isImportAt(context, node, specifier)) {
+        return { specifier, source: statement.source.value };
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
  * Whether the file can use `import`. oxlint parses `.js` and `.ts` files as
  * "unambiguous": a file without `import` or `export` is reported as a script
  * even in a `"type": "module"` package, and that is exactly the file a first

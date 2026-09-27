@@ -11,24 +11,37 @@ npm run check
 ```
 
 `npm run check` is what CI runs, minus coverage and the package lint:
-typecheck, lint, format check, tests and the rule pages check. Run it before
+typecheck, lint, format check, tests, the rule pages check and the
+integration tests. Run it before
 opening a pull request and there should be no surprises.
 
-| Command                 |                                                             |
-| ----------------------- | ----------------------------------------------------------- |
-| `npm test`              | The suite, once                                             |
-| `npm run test:watch`    | The suite, on every save                                    |
-| `npm run test:coverage` | With coverage; the thresholds are 100% and are enforced     |
-| `npm run typecheck`     | `tsc --noEmit` over everything                              |
-| `npm run lint`          | oxlint, type-aware, over this repository's own code         |
-| `npm run format`        | oxfmt, in place (`format:check` to only ask)                |
-| `npm run build`         | `dist/`, ESM with declarations and source maps              |
-| `npm run docs`          | Regenerates the rule page headers and the README rule table |
-| `npm run docs:check`    | Fails when those are out of date                            |
-| `npm run lint:package`  | publint and are-the-types-wrong over the packed tarball     |
+| Command                    |                                                             |
+| -------------------------- | ----------------------------------------------------------- |
+| `npm test`                 | The suite, once                                             |
+| `npm run test:watch`       | The suite, on every save                                    |
+| `npm run test:coverage`    | With coverage; the thresholds are 100% and are enforced     |
+| `npm run test:integration` | Builds, then runs the real oxlint CLI on the packed plugin  |
+| `npm run typecheck`        | `tsc --noEmit` over everything                              |
+| `npm run lint`             | oxlint, type-aware, over this repository's own code         |
+| `npm run format`           | oxfmt, in place (`format:check` to only ask)                |
+| `npm run build`            | `dist/`, ESM with declarations and source maps              |
+| `npm run docs`             | Regenerates the rule page headers and the README rule table |
+| `npm run docs:check`       | Fails when those are out of date                            |
+| `npm run lint:package`     | publint and are-the-types-wrong over the packed tarball     |
 
 Tests are colocated: `src/utils/strings.ts` is tested by
 `src/utils/strings.test.ts`.
+
+The integration tests in `test/integration/` check what unit tests cannot. They
+pack the plugin, install the tarball into throwaway projects and run the
+`oxlint` CLI there, with `.oxlintrc.json` and with `oxlint.config.ts`. They lint
+the third-party code vendored in `test/integration/corpus/` with every rule,
+and snapshot the number of reports per file and rule, so a change in how much
+the rules report on real code shows up in review. They apply suggestions with
+`--fix-suggestions` and check that the result parses and lints clean. Last,
+they run each rule's first suggestion and compare it with graphemic itself.
+That part needs `@sjpnz/graphemic` installed and is skipped when it is not,
+since the plugin has no dependency on it.
 
 ## Supported oxlint versions
 

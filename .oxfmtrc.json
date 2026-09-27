@@ -6,5 +6,11 @@
   "useTabs": false,
   "trailingComma": "all",
   "printWidth": 100,
-  "ignorePatterns": ["dist/", "coverage/", "issues/", "src/test/fixtures/"]
+  "ignorePatterns": [
+    "dist/",
+    "coverage/",
+    "issues/",
+    "src/test/fixtures/",
+    "test/integration/corpus/"
+  ]
 }

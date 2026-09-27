@@ -36,7 +36,8 @@ the rule reports it too, with a message that says so.
 
 Other patterns that happen to match the empty string, such as `/(?=)/`, are
 not recognised. `s.split()` with no separator returns `[s]` and is never
-reported.
+reported, and neither is graphemic's own `graphemes.split(s, separator)`,
+called through an import of `@sjpnz/graphemic` in the same file.
 
 Splitting on a non-empty separator can also cut a character, when the
 separator can occur inside one: `'é'.split('e')` separates the accent

@@ -22,7 +22,9 @@ columns.
 
 ## Rule details
 
-The rule reports every `padStart` and `padEnd` call that has a target length.
+The rule reports every `padStart` and `padEnd` call that has a target length,
+except graphemic's own: `graphemes.padStart(s, 8)` or `columns.padEnd(s, 8)`,
+called through an import of `@sjpnz/graphemic` in the same file.
 
 It leaves out the most common correct use, zero-padding a number. When the
 receiver is a number turned into a string, and the fill is left out or is a

@@ -1,6 +1,7 @@
 import type { Context, ESTree, Suggestion } from '@oxlint/plugins';
 
 import { createRule } from '../utils/createRule.js';
+import { isGraphemicNamespace } from '../utils/imports.js';
 import { callSuggestions } from '../utils/replace.js';
 import { resolve } from '../utils/scope.js';
 import { isStringLike } from '../utils/strings.js';
@@ -61,8 +62,10 @@ export default createRule('no-unsafe-split', {
         const { callee } = call;
         if (callee.type !== 'MemberExpression' || callee.computed) return;
         if (callee.property.type !== 'Identifier' || callee.object.type === 'Super') return;
-        // Only strings have `split`, so the receiver is not checked.
+        // Only strings have `split`, so the receiver is not checked, except for
+        // graphemic's own `graphemes.split`.
         if (callee.property.name !== 'split') return;
+        if (isGraphemicNamespace(context, callee.object)) return;
         const [separator] = call.arguments;
         // With no separator, `split` returns `[s]`; a spread could be anything.
         if (separator === undefined || separator.type === 'SpreadElement') return;
