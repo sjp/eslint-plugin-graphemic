@@ -1,4 +1,6 @@
-import type { Context, Definition, ESTree, Scope, Variable } from '@oxlint/plugins';
+import type { Context, Definition, ESTree, Variable } from '@oxlint/plugins';
+
+import { resolve } from './scope.js';
 
 /** How sure we are that `node` evaluates to a string. */
 export type StringEvidence = 'string' | 'not-string' | 'unknown';
@@ -203,7 +205,7 @@ function globalCallEvidence(callee: ESTree.Expression, state: State): StringEvid
 /** An identifier: its annotation, or the initialiser of a `const`. */
 function bindingEvidence(node: ESTree.Expression, state: State): StringEvidence {
   if (node.type !== 'Identifier') return 'unknown';
-  const variable = resolve(node, state.context);
+  const variable = resolve(state.context, node, node.name);
   const [definition] = variable?.defs ?? [];
   if (variable === undefined || definition === undefined || variable.defs.length > 1) {
     return 'unknown';
@@ -387,16 +389,6 @@ function keyName(key: ESTree.PropertyKey): string | undefined {
 
 /** Whether `identifier` refers to a global rather than to anything the file declares. */
 function isGlobal(identifier: ESTree.IdentifierReference, state: State): boolean {
-  const variable = resolve(identifier, state.context);
+  const variable = resolve(state.context, identifier, identifier.name);
   return variable === undefined || variable.defs.length === 0;
-}
-
-/** The variable `identifier` refers to, found through the scopes around it. */
-function resolve(identifier: ESTree.IdentifierReference, context: Context): Variable | undefined {
-  let scope: Scope | null = context.sourceCode.getScope(identifier);
-  for (; scope !== null; scope = scope.upper) {
-    const variable = scope.set.get(identifier.name);
-    if (variable !== undefined) return variable;
-  }
-  return undefined;
 }
