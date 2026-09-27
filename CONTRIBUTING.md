@@ -1,5 +1,48 @@
 # Contributing
 
+## Getting set up
+
+Node `^22.13 || >=24` and npm. The plugin has no runtime dependencies; oxlint is
+a peer.
+
+```sh
+npm ci
+npm run check
+```
+
+`npm run check` is what CI runs, minus coverage and the package lint:
+typecheck, lint, format check, tests and the rule pages check. Run it before
+opening a pull request and there should be no surprises.
+
+| Command                 |                                                             |
+| ----------------------- | ----------------------------------------------------------- |
+| `npm test`              | The suite, once                                             |
+| `npm run test:watch`    | The suite, on every save                                    |
+| `npm run test:coverage` | With coverage; the thresholds are 100% and are enforced     |
+| `npm run typecheck`     | `tsc --noEmit` over everything                              |
+| `npm run lint`          | oxlint, type-aware, over this repository's own code         |
+| `npm run format`        | oxfmt, in place (`format:check` to only ask)                |
+| `npm run build`         | `dist/`, ESM with declarations and source maps              |
+| `npm run docs`          | Regenerates the rule page headers and the README rule table |
+| `npm run docs:check`    | Fails when those are out of date                            |
+| `npm run lint:package`  | publint and are-the-types-wrong over the packed tarball     |
+
+Tests are colocated: `src/utils/strings.ts` is tested by
+`src/utils/strings.test.ts`.
+
+## Supported oxlint versions
+
+The `oxlint` peer range has a floor and no ceiling. oxlint's JS plugin API is
+alpha and not covered by its semver, so CI runs the suite three ways: against
+the version in the lockfile, against the floor of the peer range, and against
+the latest oxlint. The last of these also runs weekly, does not block a merge,
+and opens an issue labelled `oxlint-latest` when it fails: that is the warning
+that the next oxlint release breaks the plugin for its users.
+
+When an oxlint release changes the API, follow it and raise the peer floor
+rather than keeping older versions working with workarounds, and say so in
+`CHANGELOG.md`.
+
 ## What counts as a string
 
 Many of the operations these rules look at share a name with an array method:
@@ -104,3 +147,46 @@ The options and what each changes, or "This rule has no options."
 
 …
 ````
+
+## Releasing
+
+Releases are cut by hand; a pushed `v*` tag is the only thing that publishes.
+
+```sh
+# 1. Move the Unreleased section of CHANGELOG.md to x.y.z, dated today, and
+#    update the link definitions at the foot of the file. Commit it.
+npm version x.y.z   # 2. bumps package.json, syncs VERSION, commits, tags
+git push --follow-tags
+```
+
+Step 2 is the whole ceremony. `npm version` runs the `version` script, which
+rewrites the `VERSION` constant in `src/index.ts` from package.json and stages
+it, so the constant, the manifest and the tag are one commit and cannot drift.
+`VERSION` is also what the plugin reports as `meta.version`.
+`.github/scripts/check-version.mjs` checks all three agree — in CI on every
+commit, and again in the publish workflow against the tag it is running for,
+where a mismatch stops the release. npm versions are immutable, so that check
+exists because there is no fixing it afterwards.
+
+`.github/workflows/publish.yml` then re-runs everything CI runs against the
+tagged tree and publishes with `--provenance`. No npm token exists: publishing
+uses npm trusted publishing, which exchanges the workflow's OIDC identity for a
+short-lived credential and signs the attestation linking the tarball to this
+repository and commit. Nothing to store, nothing to leak, nothing to rotate.
+
+Before the first release of the package, once:
+
+1. Publish `0.1.0` from a logged-in local CLI (`npm publish --access public`).
+   Trusted publishing can only be configured on a package that already exists,
+   so this one tarball carries no provenance.
+2. On npmjs.com → the package → Settings → Trusted publishers, add this
+   repository and `publish.yml`.
+3. Every release after that goes through the workflow. Confirm the provenance
+   badge on the npm page of the first one that does.
+4. Optionally give the `npm` environment a required reviewer in the repository
+   settings, which holds a pushed tag until someone approves the publish.
+
+`npm publish --dry-run` prints the tarball without uploading it.
+
+While the package is `0.x` a breaking change bumps the minor. Raising the
+`oxlint` peer floor is a breaking change.

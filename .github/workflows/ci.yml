@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # oxlint releases without this repository changing, and its JS plugin API is
+  # not covered by semver, so the latest-oxlint job also runs on a timer.
+  schedule:
+    - cron: '0 6 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      # The version is written down in two places that nothing keeps in step
+      # automatically. Catching drift here means a release tag is not the first
+      # time anyone finds out.
+      - name: Check package.json and the built VERSION agree
+        run: node .github/scripts/check-version.mjs
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:coverage
+      - run: npm run docs:check
+      - run: npm run lint:package
+
+  # The peer range promises every oxlint from its lower bound up, but the lockfile
+  # tests only one version. Run the suite against the bound itself, so raising
+  # the dev dependency cannot quietly start relying on something the floor lacks.
+  oxlint-minimum:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      # Read from package.json so that raising the floor is a one-line change
+      # there, not a second edit here that can be forgotten.
+      - name: Install the lowest oxlint the peer range allows
+        run: |
+          floor=$(node -p "
+            const range = require('./package.json').peerDependencies.oxlint;
+            const match = /^>=\s*(\d+\.\d+\.\d+)$/.exec(range);
+            if (!match) throw new Error('expected the oxlint peer range to be >=x.y.z, got ' + range);
+            match[1]
+          ")
+          npm i -D "oxlint@$floor" "@oxlint/plugins@$floor" --no-save
+      - run: npx oxlint --version
+      - run: npm test
+
+  # The early warning that the next oxlint release breaks this plugin for its
+  # users. It does not block a merge — nothing in a pull request can fix an
+  # upstream change — so instead of a red check a failure files an issue.
+  oxlint-latest:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - run: npm i -D oxlint@latest @oxlint/plugins@latest --no-save
+      - run: npx oxlint --version
+      - run: npm test
+      # Pull requests are left out: a fork's token cannot write issues, and the
+      # same failure will be seen on main or on the next scheduled run anyway.
+      # One open issue collects every failure until someone closes it.
+      - name: Report the failure as an issue
+        if: failure() && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          label=oxlint-latest
+          version=$(npx oxlint --version)
+          body="The test suite fails against the latest oxlint ($version): $RUN_URL"
+          gh label create "$label" --color d93f0b \
+            --description 'The test suite fails against the latest oxlint' --force
+          open=$(gh issue list --label "$label" --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --label "$label" \
+              --title 'Tests fail against the latest oxlint' --body "$body"
+          fi
