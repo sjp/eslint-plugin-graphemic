@@ -14,9 +14,14 @@ export interface CallSuggestion {
   /**
    * Text appended after the call, e.g. ` ?? ''`. It is assumed to bind at
    * least as tightly as `??` and `||`: the call and suffix are parenthesised
-   * wherever that would not hold on its own.
+   * wherever that would not hold on its own, unless `chained` says otherwise.
    */
   suffix?: string;
+  /**
+   * Whether `suffix` continues the call as a member access or another call,
+   * e.g. `.map(fn)`, and so binds as tightly as the call itself.
+   */
+  chained?: boolean;
 }
 
 /**
@@ -55,7 +60,8 @@ export function callSuggestion(
     typeof arg === 'string' ? arg : argumentText(sourceCode, arg),
   );
   const call = `${callee.text}(${args.join(', ')})${suggestion.suffix ?? ''}`;
-  const text = needsParentheses(sourceCode, node, suggestion.suffix !== undefined)
+  const loose = suggestion.suffix !== undefined && suggestion.chained !== true;
+  const text = needsParentheses(sourceCode, node, loose)
     ? `${asiGuard(sourceCode, node)}(${call})`
     : call;
   return {
@@ -136,18 +142,18 @@ function losesComments(
 /**
  * Whether the replacement has to be parenthesised to parse as one operand in
  * `node`'s place. A bare call binds as tightly as anything except as the
- * callee of `new`, where `new f.x()` and `new (f.x())` differ. A suffix
+ * callee of `new`, where `new f.x()` and `new (f.x())` differ. A loose suffix
  * binds more loosely, so a call with one is parenthesised unless `node`
  * already is, or sits where any expression is allowed.
  */
 function needsParentheses(
   sourceCode: SourceCode,
   node: ESTree.Expression,
-  hasSuffix: boolean,
+  looseSuffix: boolean,
 ): boolean {
   const { parent } = node;
   if (parent.type === 'NewExpression' && parent.callee === node) return true;
-  if (!hasSuffix || isParenthesized(sourceCode, node)) return false;
+  if (!looseSuffix || isParenthesized(sourceCode, node)) return false;
   return !acceptsAnyExpression(parent, node);
 }
 

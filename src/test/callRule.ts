@@ -14,6 +14,7 @@ export type CallOption = {
   /** Raw text arguments after the node ones. */
   extra?: string[];
   suffix?: string;
+  chained?: boolean;
 };
 
 /**
@@ -41,6 +42,7 @@ export const callRule = createRule('call', {
           fn: { type: 'string' },
           extra: { type: 'array', items: { type: 'string' } },
           suffix: { type: 'string' },
+          chained: { type: 'boolean' },
         },
         required: ['unit', 'fn'],
         additionalProperties: false,
@@ -65,7 +67,7 @@ export const callRule = createRule('call', {
           suggest: callSuggestions(
             context,
             node,
-            options.map(({ unit, fn, extra = [], suffix }) => {
+            options.map(({ unit, fn, extra = [], suffix, chained }) => {
               const suggestion: CallSuggestion = {
                 messageId: 'suggest',
                 data: { unit },
@@ -74,6 +76,7 @@ export const callRule = createRule('call', {
                 args: [...args, ...extra],
               };
               if (suffix !== undefined) suggestion.suffix = suffix;
+              if (chained !== undefined) suggestion.chained = chained;
               return suggestion;
             }),
           ),

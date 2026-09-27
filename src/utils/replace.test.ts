@@ -7,6 +7,10 @@ const IMPORT = "import { graphemes } from '@sjpnz/graphemic';\n";
 const LENGTH: CallOption[] = [{ unit: 'graphemes', fn: 'length' }];
 /** `graphemes.at(s, 0) ?? ''`: a call with a suffix that binds more loosely than it. */
 const FIRST: CallOption[] = [{ unit: 'graphemes', fn: 'at', extra: ['0'], suffix: " ?? ''" }];
+/** `graphemes.toArray(s).map(f)`: a call with a suffix that chains onto it. */
+const MAPPED: CallOption[] = [
+  { unit: 'graphemes', fn: 'toArray', suffix: '.map(f)', chained: true },
+];
 
 /**
  * An invalid case whose one report suggests `IMPORT` followed by `output`, or
@@ -101,6 +105,10 @@ ruleTester.run('callSuggestion', callRule, {
       "function f() { return graphemes.at('ab', 0) ?? ''; }",
       FIRST,
     ),
+    // A chained suffix binds as tightly as the call, so it needs no more parentheses than one.
+    suggests("x + 'ab'.$;", "x + graphemes.toArray('ab').map(f);", MAPPED),
+    suggests("y = 'ab'.$.x;", "y = graphemes.toArray('ab').map(f).x;", MAPPED),
+    suggests("new 'ab'.$();", "new (graphemes.toArray('ab').map(f))();", MAPPED),
 
     // A parenthesised replacement starting a statement is guarded against
     // joining the one before, when that has no semicolon.
