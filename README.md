@@ -19,6 +19,7 @@ so a person chooses it.
 | [graphemic/no-unsafe-index](docs/rules/no-unsafe-index.md)         | Disallow `s[i]`, `at` and `charAt` on strings, which read one UTF-16 code unit.                                         | ✅  | 💡  |
 | [graphemic/no-unsafe-iteration](docs/rules/no-unsafe-iteration.md) | Disallow iterating strings with `for…of`, spread or `Array.from`, which yields code points and splits characters apart. | ✅  | 💡  |
 | [graphemic/no-unsafe-length](docs/rules/no-unsafe-length.md)       | Disallow `.length` on strings, which counts UTF-16 code units.                                                          | ✅  | 💡  |
+| [graphemic/no-unsafe-pad](docs/rules/no-unsafe-pad.md)             | Disallow `padStart` and `padEnd`, which measure and cut in UTF-16 code units.                                           | ✅  | 💡  |
 | [graphemic/no-unsafe-slice](docs/rules/no-unsafe-slice.md)         | Disallow `slice`, `substring` and `substr` on strings, which cut at UTF-16 code-unit offsets.                           | ✅  | 💡  |
 | [graphemic/no-unsafe-split](docs/rules/no-unsafe-split.md)         | Disallow `split` into UTF-16 code units, and optionally on any separator, which can cut characters apart.               | ✅  | 💡  |
 
