@@ -2,6 +2,7 @@ import type { Context, ESTree } from '@oxlint/plugins';
 
 import { createRule } from '../utils/createRule.js';
 import type { Unit } from '../utils/graphemic.js';
+import { isWritten } from '../utils/isWritten.js';
 import { callSuggestions } from '../utils/replace.js';
 import { resolve } from '../utils/scope.js';
 import { isStringLike } from '../utils/strings.js';
@@ -133,32 +134,6 @@ function isLengthKey(key: ESTree.Node, computed: boolean): boolean {
       return (
         key.expressions.length === 0 && key.quasis.every((quasi) => quasi.value.cooked === 'length')
       );
-    default:
-      return false;
-  }
-}
-
-/**
- * Whether `node` is written to rather than read. Only an array's length can be
- * set, so none of these is a string's: `x.length = 0`, `x.length++`,
- * `delete x.length`, `for (x.length of …)`, `[x.length] = …`.
- */
-function isWritten(node: ESTree.Expression): boolean {
-  const { parent } = node;
-  switch (parent.type) {
-    case 'AssignmentExpression':
-    case 'AssignmentPattern':
-    case 'ForInStatement':
-    case 'ForOfStatement':
-      return parent.left === node;
-    case 'UpdateExpression':
-    case 'ArrayPattern':
-    case 'RestElement':
-      return true;
-    case 'UnaryExpression':
-      return parent.operator === 'delete';
-    case 'Property':
-      return parent.parent.type === 'ObjectPattern' && parent.value === node;
     default:
       return false;
   }

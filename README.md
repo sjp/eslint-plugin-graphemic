@@ -16,6 +16,7 @@ so a person chooses it.
 
 | Name                                                         | Description                                                                                   | ✅  | 💡  |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | --- | --- |
+| [graphemic/no-unsafe-index](docs/rules/no-unsafe-index.md)   | Disallow `s[i]`, `at` and `charAt` on strings, which read one UTF-16 code unit.               | ✅  | 💡  |
 | [graphemic/no-unsafe-length](docs/rules/no-unsafe-length.md) | Disallow `.length` on strings, which counts UTF-16 code units.                                | ✅  | 💡  |
 | [graphemic/no-unsafe-slice](docs/rules/no-unsafe-slice.md)   | Disallow `slice`, `substring` and `substr` on strings, which cut at UTF-16 code-unit offsets. | ✅  | 💡  |
 
