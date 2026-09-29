@@ -1,7 +1,7 @@
 {
   "name": "eslint-plugin-graphemic",
   "version": "0.0.0",
-  "description": "Oxlint rules that flag string operations which can cut through a user-visible character, and suggest the @sjpnz/graphemic replacement.",
+  "description": "Oxlint and ESLint rules that flag string operations which can cut through a user-visible character, and suggest the @sjpnz/graphemic replacement.",
   "keywords": [
     "eslint",
     "eslint-plugin",

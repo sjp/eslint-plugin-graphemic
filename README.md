@@ -1,8 +1,12 @@
 # eslint-plugin-graphemic
 
-Oxlint rules that flag string operations which can cut through a user-visible
+[Oxlint](https://oxc.rs/docs/guide/usage/linter) and [ESLint](https://eslint.org)
+rules that flag string operations which can cut through a user-visible
 character, and suggest the [`@sjpnz/graphemic`](https://github.com/sjp/graphemic)
 replacement.
+
+The rules use the plugin API the two linters share. ESLint support is on its
+way: for now only Oxlint is tested and supported.
 
 ## Rules
 
@@ -30,10 +34,11 @@ so a person chooses it.
 
 ## Settings
 
-Settings shared by every rule go under `settings.graphemic` in `.oxlintrc.json`.
-All are optional.
+Settings shared by every rule go under `settings.graphemic` in the linter's
+config. All are optional.
 
 ```jsonc
+// .oxlintrc.json
 {
   "settings": {
     "graphemic": { "importStyle": "subpath" },

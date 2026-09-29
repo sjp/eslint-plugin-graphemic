@@ -4,9 +4,9 @@
  * author almost always meant user-visible characters. Each report suggests the
  * `@sjpnz/graphemic` function that names its unit instead.
  *
- * Written for oxlint's JS plugin support. The rules use the `create` API that
- * oxlint shares with ESLint, so the plugin is ESLint-shaped, but only oxlint is
- * tested and supported for now.
+ * For oxlint and ESLint. The rules use the `create` API the two share, so one
+ * plugin serves both, but only oxlint is tested and supported for now; ESLint
+ * support is on its way.
  *
  * @example
  * // oxlint.config.ts

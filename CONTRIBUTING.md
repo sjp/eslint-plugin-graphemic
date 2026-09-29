@@ -60,8 +60,10 @@ rather than keeping older versions working with workarounds, and say so in
 
 Many of the operations these rules look at share a name with an array method:
 `.length`, `.slice()`, `.at()`, `.indexOf()`, `.includes()`, `x[i]`, `for…of`
-and spread. oxlint gives plugins no type information, so a rule reports one of
-these only when the syntax alone shows that the receiver is a string. Rules ask
+and spread. The rules use no type information — oxlint gives JS plugins none,
+and ESLint has it only through typescript-eslint, which the plugin does not
+require — so a rule reports one of these only when the syntax alone shows that
+the receiver is a string. Rules ask
 `isStringLike` (in `src/utils/strings.ts`), which answers from the evidence
 below and nothing else; rule pages link here rather than repeat it.
 
